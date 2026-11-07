@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  edgetrack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: edgetrack:latest
+    container_name: edgetrack_engine
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=EdgeTrack
+      - HOST=0.0.0.0
+      - PORT=8000
+      - MODEL_PATH=models/yolov8n.onnx
+      - INT8_MODEL_PATH=models/yolov8n_int8.onnx
+      - USE_INT8=false
+      - CONF_THRESHOLD=0.25
+      - NMS_IOU_THRESHOLD=0.45
+      - TRACK_HIGH_THRESH=0.5
+      - TRACK_LOW_THRESH=0.1
+      - NEW_TRACK_THRESH=0.6
+      - MATCH_THRESH=0.8
+      - MATCH_THRESH_SECOND=0.5
+      - MAX_LOST_FRAMES=30
+      - ORT_NUM_THREADS=4
+    volumes:
+      - ./models:/app/models
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 2048M
+        reservations:
+          cpus: '1.00'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
